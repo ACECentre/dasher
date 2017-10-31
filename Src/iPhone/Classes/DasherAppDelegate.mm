@@ -60,7 +60,6 @@
 - (void)selectEAGLContext;
 @property (retain) UILabel *screenLockLabel;
 @property (retain) NSString *lockText;
-@property (retain, readwrite) UIWindow *m_window;
 @property (nonatomic,retain) NSString *m_wordBoundary;
 @property (nonatomic,retain) NSString *m_sentenceBoundary;
 @property (nonatomic,retain) NSString *m_lineBoundary;
@@ -114,7 +113,8 @@ static NSString *EDIT_FONT_SIZE = @"iPhoneEditBoxFontSize";
   label.textAlignment = UITextAlignmentCenter;
   UISlider *slider = [[[UISlider alloc] initWithFrame:CGRectMake(10.0, y+20, appSize.width-20, 20.0)] autorelease];
   slider.tag = (NSInteger)label; label.tag=(NSInteger)EDIT_FONT_SIZE;
-  slider.minimumValue = 5; slider.maximumValue = 40;
+  slider.minimumValue = 5;
+  slider.maximumValue = 40;
   slider.value = [ud integerForKey:EDIT_FONT_SIZE];
   [slider addTarget:self action:@selector(longUserDefChanged:) forControlEvents:UIControlEventValueChanged];
   [self longUserDefChanged:slider];
@@ -123,7 +123,7 @@ static NSString *EDIT_FONT_SIZE = @"iPhoneEditBoxFontSize";
   return y;
 }
 
--(void)longUserDefChanged:(id)uislider {
+-(void)longUsefrDefChanged:(id)uislider {
   NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
   UISlider *s=(UISlider *)uislider;
   UILabel *lbl=(UILabel *)s.tag;
@@ -148,7 +148,6 @@ using namespace Dasher;
 @synthesize m_sentenceBoundary;
 @synthesize m_lineBoundary;
 @synthesize allowsRotation = m_bAllowsRotation;
-@synthesize m_window;
 
 static DasherAppDelegate *s_appDelegate;
 
@@ -213,21 +212,21 @@ static DasherAppDelegate *s_appDelegate;
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
   // check delegate
-  id<UIApplicationDelegate> app = [UIApplication sharedApplication].delegate;
-  NSAssert ([app isMemberOfClass:[DasherAppDelegate class]], @"AppDelegate is not DasherAppDelegate!");
-  s_appDelegate = (DasherAppDelegate*)app;
+  id<UIApplicationDelegate> appDelegate = application.delegate;
+  NSAssert ([appDelegate isMemberOfClass:[DasherAppDelegate class]], @"AppDelegate is not DasherAppDelegate!");
+  s_appDelegate = (DasherAppDelegate*)appDelegate;
   
   //by default, we support landscape mode (i.e. unless the input device _disables_ it)
   // - hence, set now, before the input device is activate()d...
   m_bAllowsRotation = YES;
 
   //sizes set in doLayout, below...
-  self.m_window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-  self.view = [[[UIView alloc] init] autorelease];
-  self.m_window.rootViewController = self;
-  // change to rootViewController style
-  // [self.window addSubview:self.view];
+  self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+  self.view = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, self.window.bounds.size.width, self.window.bounds.size.height)] autorelease];
+  [self.window addSubview:self.view];
+  self.window.rootViewController = self;
   
+    
   //make object (this doesn't do anything much, initialization/Realize later
   // - but we have to set a screen before we Realize)
   _dasherInterface = new CDasherInterfaceBridge(self);
@@ -246,7 +245,7 @@ static DasherAppDelegate *s_appDelegate;
 		
   //start Realization i.e. training in a separate thread. (Has to be after first
   // call to doLayout, or get a black band across top of screen)
-  [self doAsyncLocked:@"Initializing..." target:self selector:@selector(initDasherInterface) param:nil];
+  //[self doAsyncLocked:@"Initializing..." target:self selector:@selector(initDasherInterface) param:nil];
 
 	textView.text=@"";
 	textView.editable = NO;
@@ -281,13 +280,15 @@ static DasherAppDelegate *s_appDelegate;
   [self refreshToolbar];
 	
 	[self.view addSubview:glView];
-	[self.view addSubview:textView]; [self.view addSubview:webView];
+	[self.view addSubview:textView];
+    [self.view addSubview:webView];
   //relying here on things added later being on top of those added earlier.
   //Seems to work ok but not sure whether this is guaranteed?!
   [self.view addSubview:speedSlider];
   [self.view addSubview:messageLabel];
 	[self.view addSubview:tools];
-	[window makeKeyAndVisible];
+	
+     [self.window makeKeyAndVisible];
   //exit this routine; initDasherInterface (in separate thread) will cause this (main) thread
   // to execute finishStartup, and finally unlock the display, when it's done with training etc.
 }

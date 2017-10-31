@@ -289,6 +289,7 @@
 		33F87A240FB1C775003E737C /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33F87A230FB1C775003E737C /* MainWindow.xib */; };
 		33F87A720FB1CB91003E737C /* Dasher_small.png in Resources */ = {isa = PBXBuildFile; fileRef = 33F87A710FB1CB91003E737C /* Dasher_small.png */; };
 		33FDB7F5135F310E00D6C952 /* UserLogBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 33FDB7F4135F310E00D6C952 /* UserLogBase.cpp */; };
+		8B9329E01FA8DC1E005159D5 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B9329DF1FA8DC1E005159D5 /* Images.xcassets */; };
 		94A831C71F79274F0017BA2D /* FileUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 94A831C61F79274F0017BA2D /* FileUtils.mm */; };
 /* End PBXBuildFile section */
 
@@ -754,6 +755,7 @@
 		33F87A230FB1C775003E737C /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		33F87A710FB1CB91003E737C /* Dasher_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Dasher_small.png; sourceTree = "<group>"; };
 		33FDB7F4135F310E00D6C952 /* UserLogBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserLogBase.cpp; sourceTree = "<group>"; };
+		8B9329DF1FA8DC1E005159D5 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Dasher/Images.xcassets; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		94A831C51F79274E0017BA2D /* FileUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtils.h; sourceTree = "<group>"; };
 		94A831C61F79274F0017BA2D /* FileUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FileUtils.mm; sourceTree = "<group>"; };
@@ -858,6 +860,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				8B9329DF1FA8DC1E005159D5 /* Images.xcassets */,
 				3302678A11B8040D00C07880 /* spanner_lg.png */,
 				3302678B11B8040D00C07880 /* spanner.png */,
 				332F34D8103D9858008448D7 /* palette.png */,
@@ -1481,6 +1484,7 @@
 				3344FE380F71717C00506EAA /* DasherViewSquare.inl in Resources */,
 				33627FBA0F7A82CF000C8818 /* training_albanian_SQ.txt in Resources */,
 				33627FBD0F7A82CF000C8818 /* training_bengali_BD.txt in Resources */,
+				8B9329E01FA8DC1E005159D5 /* Images.xcassets in Resources */,
 				33627FBF0F7A82CF000C8818 /* training_canna_JP.txt in Resources */,
 				33627FC10F7A82CF000C8818 /* training_czech_CS.txt in Resources */,
 				33627FC20F7A82CF000C8818 /* training_danish_DK.txt in Resources */,
@@ -1769,6 +1773,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -1797,6 +1803,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Alan Lawrence (YB2RM5STT4)";
@@ -1848,6 +1856,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";

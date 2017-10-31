@@ -15,7 +15,6 @@
 @class FliteTTS;
 
 @interface DasherAppDelegate : UIViewController <UIApplicationDelegate, UIActionSheetDelegate, UITextViewDelegate, UIWebViewDelegate> {
-    UIWindow *window;
     EAGLView *glView;
   FliteTTS *fliteEng;
 	TextView *textView;
@@ -56,6 +55,7 @@
 
 @property (readonly) CDasherInterfaceBridge *dasherInterface;
 @property BOOL allowsRotation;
+@property (nonatomic, retain) UIWindow *window;
 @end
 
 @interface UIViewController (lockable)
