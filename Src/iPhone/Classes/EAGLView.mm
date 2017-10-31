@@ -235,9 +235,12 @@ bool operator==(CGPoint p,CGPoint q) {
 	glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 	//glOrthof(0.0, 1.0, 1.0, 0.0, -1.0, 1.0);
+/*
 #if !TARGET_IPHONE_SIMULATOR || __IPHONE_3_0
 #define IntToFixed(A) A<<16
 #endif
+*/
+#define IntToFixed(A) A
     glOrthox(0, IntToFixed(backingWidth), IntToFixed(backingHeight), 0, IntToFixed(-1), IntToFixed(1));
     glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

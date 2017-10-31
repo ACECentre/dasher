@@ -289,6 +289,7 @@
 		33F87A240FB1C775003E737C /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 33F87A230FB1C775003E737C /* MainWindow.xib */; };
 		33F87A720FB1CB91003E737C /* Dasher_small.png in Resources */ = {isa = PBXBuildFile; fileRef = 33F87A710FB1CB91003E737C /* Dasher_small.png */; };
 		33FDB7F5135F310E00D6C952 /* UserLogBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 33FDB7F4135F310E00D6C952 /* UserLogBase.cpp */; };
+		94A831C71F79274F0017BA2D /* FileUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 94A831C61F79274F0017BA2D /* FileUtils.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -754,6 +755,8 @@
 		33F87A710FB1CB91003E737C /* Dasher_small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Dasher_small.png; sourceTree = "<group>"; };
 		33FDB7F4135F310E00D6C952 /* UserLogBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UserLogBase.cpp; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		94A831C51F79274E0017BA2D /* FileUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileUtils.h; sourceTree = "<group>"; };
+		94A831C61F79274F0017BA2D /* FileUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FileUtils.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -776,6 +779,8 @@
 		080E96DDFE201D6D7F000001 /* IPhone Classes */ = {
 			isa = PBXGroup;
 			children = (
+				94A831C51F79274E0017BA2D /* FileUtils.h */,
+				94A831C61F79274F0017BA2D /* FileUtils.mm */,
 				333F6F4A11A8A6EF002E2BDF /* FliteTTS.h */,
 				333F6F4B11A8A6EF002E2BDF /* FliteTTS.m */,
 				334B1BEF11232A8E007A6DFF /* ParametersController.h */,
@@ -1441,6 +1446,8 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Dasher" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
@@ -1601,6 +1608,7 @@
 				3344FE210F71717C00506EAA /* ColourIO.cpp in Sources */,
 				3344FE220F71717C00506EAA /* ControlManager.cpp in Sources */,
 				3344FE240F71717C00506EAA /* ConversionManager.cpp in Sources */,
+				94A831C71F79274F0017BA2D /* FileUtils.mm in Sources */,
 				3344FE260F71717C00506EAA /* CustomColours.cpp in Sources */,
 				3344FE270F71717C00506EAA /* DasherButtons.cpp in Sources */,
 				3344FE310F71717C00506EAA /* DasherInterfaceBase.cpp in Sources */,
@@ -1761,13 +1769,27 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "compiler-default";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = K45HHA96ND;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Dasher_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-stdlib=libc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.uk.acecentre.dasher;
 				PRODUCT_NAME = Dasher;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Debug;
 		};
@@ -1775,19 +1797,33 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Alan Lawrence (YB2RM5STT4)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = K45HHA96ND;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Dasher_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-stdlib=libc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.uk.acecentre.dasher;
 				PRODUCT_NAME = Dasher;
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Release;
 		};
 		33B24B510FB1D08C0016C8DE /* Distribution */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -1812,22 +1848,34 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = K45HHA96ND;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Dasher_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-stdlib=libc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.uk.acecentre.dasher;
 				PRODUCT_NAME = Dasher;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
 			name = Distribution;
 		};
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -1855,7 +1903,7 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;

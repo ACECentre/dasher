@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Dasher_small.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>uk.ac.cam.phy.inference.dasher</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

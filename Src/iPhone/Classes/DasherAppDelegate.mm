@@ -18,6 +18,8 @@
 #import "FliteTTS.h"
 #import "ActionConfigurator.h"
 
+#import "FileUtils.h"
+
 @interface UITextView (MessageHider)
 -(void)hideMessage:(NSNumber *)height;
 @end
@@ -58,7 +60,7 @@
 - (void)selectEAGLContext;
 @property (retain) UILabel *screenLockLabel;
 @property (retain) NSString *lockText;
-@property (retain) UIWindow *window;
+@property (retain, readwrite) UIWindow *m_window;
 @property (nonatomic,retain) NSString *m_wordBoundary;
 @property (nonatomic,retain) NSString *m_sentenceBoundary;
 @property (nonatomic,retain) NSString *m_lineBoundary;
@@ -111,7 +113,7 @@ static NSString *EDIT_FONT_SIZE = @"iPhoneEditBoxFontSize";
   UILabel *label = [[[UILabel alloc] initWithFrame:CGRectMake(10.0, y, appSize.width-20, 20.0)] autorelease];
   label.textAlignment = UITextAlignmentCenter;
   UISlider *slider = [[[UISlider alloc] initWithFrame:CGRectMake(10.0, y+20, appSize.width-20, 20.0)] autorelease];
-  slider.tag = (int)label; label.tag=(int)EDIT_FONT_SIZE;
+  slider.tag = (NSInteger)label; label.tag=(NSInteger)EDIT_FONT_SIZE;
   slider.minimumValue = 5; slider.maximumValue = 40;
   slider.value = [ud integerForKey:EDIT_FONT_SIZE];
   [slider addTarget:self action:@selector(longUserDefChanged:) forControlEvents:UIControlEventValueChanged];
@@ -146,7 +148,9 @@ using namespace Dasher;
 @synthesize m_sentenceBoundary;
 @synthesize m_lineBoundary;
 @synthesize allowsRotation = m_bAllowsRotation;
-@synthesize window;
+@synthesize m_window;
+
+static DasherAppDelegate *s_appDelegate;
 
 //a private method called only by CDasherInterfaceBridge
 -(EAGLView *)glView {
@@ -208,15 +212,21 @@ using namespace Dasher;
 -(CDasherInterfaceBridge *)dasherInterface {return _dasherInterface;}
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
+  // check delegate
+  id<UIApplicationDelegate> app = [UIApplication sharedApplication].delegate;
+  NSAssert ([app isMemberOfClass:[DasherAppDelegate class]], @"AppDelegate is not DasherAppDelegate!");
+  s_appDelegate = (DasherAppDelegate*)app;
+  
   //by default, we support landscape mode (i.e. unless the input device _disables_ it)
   // - hence, set now, before the input device is activate()d...
   m_bAllowsRotation = YES;
 
   //sizes set in doLayout, below...
-	self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-	self.view = [[[UIView alloc] init] autorelease];
-
-	[self.window addSubview:self.view];
+  self.m_window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+  self.view = [[[UIView alloc] init] autorelease];
+  self.m_window.rootViewController = self;
+  // change to rootViewController style
+  // [self.window addSubview:self.view];
   
   //make object (this doesn't do anything much, initialization/Realize later
   // - but we have to set a screen before we Realize)
@@ -521,7 +531,6 @@ using namespace Dasher;
 }
 
 - (void)dealloc {
-	[window release];
   [tools release];
   [fliteEng release];
 	[super dealloc];
@@ -533,8 +542,10 @@ using namespace Dasher;
   // (Although requiring offset+length to be within text, has identified many bugs,
   // the editing functions in control mode are too broken to fix right now! Hence,
   // copying the Gtk2 behaviour...)
-  range.location = max(0u,min(offset,[textView.text length]));
-  range.length = min(length,[textView.text length] - range.location);
+  unsigned int tmp1 = (unsigned int)[textView.text length];
+  unsigned int tmp2 = (unsigned int)([textView.text length] - range.location);
+  range.location = max(0u,min(offset,tmp1));
+  range.length = min(length,tmp2);
   return [textView.text substringWithRange:range];
 }
 
@@ -615,9 +626,11 @@ using namespace Dasher;
 }
 
 + (DasherAppDelegate *)theApp {
-	id<UIApplicationDelegate> app = [UIApplication sharedApplication].delegate;
-	NSAssert ([app isMemberOfClass:[DasherAppDelegate class]], @"AppDelegate is not DasherAppDelegate!");
-	return (DasherAppDelegate *)app;
+  DasherAppDelegate *ret;
+  @synchronized ([UIApplication sharedApplication]) {
+    ret = s_appDelegate;
+  }
+  return ret;
 }
 
 #pragma mark TextViewDelegate method
