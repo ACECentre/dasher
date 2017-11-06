@@ -123,7 +123,7 @@ static NSString *EDIT_FONT_SIZE = @"iPhoneEditBoxFontSize";
   return y;
 }
 
--(void)longUsefrDefChanged:(id)uislider {
+-(void)longUserDefChanged:(id)uislider {
   NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
   UISlider *s=(UISlider *)uislider;
   UILabel *lbl=(UILabel *)s.tag;
@@ -171,8 +171,8 @@ static DasherAppDelegate *s_appDelegate;
 /// Sets sizes of toolbar and textview according to supplied orientation
 /// Also computes and returns desired size of glView, and sets said _iff_ glView is non-nil
 -(CGRect)doLayout:(UIInterfaceOrientation)orient {
-  self.view.frame = [UIScreen mainScreen].applicationFrame;
-
+  self.view.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
+  CGFloat top = [UIApplication sharedApplication].statusBarFrame.size.height;
   const CGSize mainSize = self.view.bounds.size;
   //now always display toolbar, even in landscape
   const int barHeight(mainSize.height/20);
@@ -181,15 +181,15 @@ static DasherAppDelegate *s_appDelegate;
   CGRect dashRect,textRect;
   switch (orient) {
     case UIInterfaceOrientationPortrait: {
-      dashRect = CGRectMake(0.0, 0.0, mainSize.width, ((mainHeight*3)/4));
-      textRect = CGRectMake(0.0, dashRect.size.height, mainSize.width, mainHeight-dashRect.size.height);
+      dashRect = CGRectMake(0.0, top, mainSize.width, ((mainHeight*3)/4));
+      textRect = CGRectMake(0.0, top + dashRect.size.height, mainSize.width, mainHeight-dashRect.size.height-top);
       textView.bLandscape = NO;
       break;
     }
     case UIInterfaceOrientationLandscapeRight:
     case UIInterfaceOrientationLandscapeLeft: {
-      textRect = CGRectMake(0.0, 0.0, static_cast<int>((mainSize.width*2)/9), mainHeight);
-      dashRect = CGRectMake(textRect.size.width, 0.0, mainSize.width-textRect.size.width, mainHeight);
+      textRect = CGRectMake(0.0, top, static_cast<int>((mainSize.width*2)/9), mainHeight-top);
+      dashRect = CGRectMake(textRect.size.width, top, mainSize.width-textRect.size.width, mainHeight-top);
       textView.bLandscape = YES;
       break;
     }
@@ -219,13 +219,6 @@ static DasherAppDelegate *s_appDelegate;
   //by default, we support landscape mode (i.e. unless the input device _disables_ it)
   // - hence, set now, before the input device is activate()d...
   m_bAllowsRotation = YES;
-
-  //sizes set in doLayout, below...
-  self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
-  self.view = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, self.window.bounds.size.width, self.window.bounds.size.height)] autorelease];
-  [self.window addSubview:self.view];
-  self.window.rootViewController = self;
-  
     
   //make object (this doesn't do anything much, initialization/Realize later
   // - but we have to set a screen before we Realize)
@@ -234,65 +227,96 @@ static DasherAppDelegate *s_appDelegate;
   //adjust to new scale...
   if (_dasherInterface->GetLongParameter(LP_DASHER_FONTSIZE)<5)
     _dasherInterface->SetLongParameter(LP_DASHER_FONTSIZE, 10*max(_dasherInterface->GetLongParameter(LP_DASHER_FONTSIZE),1l));
-  //create GUI components...
-	textView = [[[TextView alloc] init] autorelease];
-  webView = [[[UIWebView alloc] init] autorelease];
-  messageLabel = [[[UITextView alloc] init] autorelease];
-  speedSlider = [[[UISlider alloc] init] autorelease];
-  tools = [[UIToolbar alloc] init]; //retain a reference (until dealloc) because of rotation
-	glView = [[[EAGLView alloc] initWithFrame:[self doLayout:UIInterfaceOrientationPortrait] Delegate:self] autorelease];
-  glView.multipleTouchEnabled = YES;
-		
-  //start Realization i.e. training in a separate thread. (Has to be after first
-  // call to doLayout, or get a black band across top of screen)
-  //[self doAsyncLocked:@"Initializing..." target:self selector:@selector(initDasherInterface) param:nil];
-
-	textView.text=@"";
-	textView.editable = NO;
-	textView.delegate = self;
-	selectedText.location = selectedText.length = 0;
-  textView.selectedRange=selectedText;
-  int sz = [[NSUserDefaults standardUserDefaults] integerForKey:EDIT_FONT_SIZE];
-  if (!sz)
-    [[NSUserDefaults standardUserDefaults] setInteger:sz=12 forKey:EDIT_FONT_SIZE];
-	
-  textView.font = [UIFont systemFontOfSize:sz];
-
-  webView.dataDetectorTypes = UIDataDetectorTypeNone;
-  webView.delegate = self;
-  
-  messageLabel.editable = NO;
-  messageLabel.backgroundColor = [UIColor grayColor];
-  messageLabel.textColor = [UIColor whiteColor];
-  messageLabel.contentInset = UIEdgeInsetsZero;
-  messageLabel.hidden = YES;
-
-  speedSlider.minimumValue=0.1; speedSlider.maximumValue=12.0;
-  speedSlider.hidden = YES;
-  
-  [speedSlider addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
-  [speedSlider addTarget:self action:@selector(speedSlid:) forControlEvents:UIControlEventValueChanged];
-  //...and lay them out
-	speedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-	[speedBtn setImageEdgeInsets:UIEdgeInsetsMake(0.0, 2.0, 0.0, 2.0)];
-	[speedBtn addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
-  
-  [self refreshToolbar];
-	
-	[self.view addSubview:glView];
-	[self.view addSubview:textView];
-    [self.view addSubview:webView];
-  //relying here on things added later being on top of those added earlier.
-  //Seems to work ok but not sure whether this is guaranteed?!
-  [self.view addSubview:speedSlider];
-  [self.view addSubview:messageLabel];
-	[self.view addSubview:tools];
-	
-     [self.window makeKeyAndVisible];
-  //exit this routine; initDasherInterface (in separate thread) will cause this (main) thread
+    
+    // iOS specific default settings
+    std::string geometryStr("Geometry");
+    if(!_dasherInterface->IsParameterSaved(geometryStr) || YES) {
+       // fill screen
+       // _dasherInterface->SetLongParameter(LP_GEOMETRY, 0);
+    }
+    // initiate window, the rest at viewDidLoad
+    //sizes set in doLayout, below...
+    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    // self.view = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, self.window.bounds.size.width, self.window.bounds.size.height)] autorelease];
+    // [self.window addSubview:self.view];
+    self.window.rootViewController = self;
+    [self.window makeKeyAndVisible];
+      //exit this routine; initDasherInterface (in separate thread) will cause this (main) thread
   // to execute finishStartup, and finally unlock the display, when it's done with training etc.
 }
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
+    //create GUI components...
+    textView = [[[TextView alloc] init] autorelease];
+    webView = [[[UIWebView alloc] init] autorelease];
+    messageLabel = [[[UITextView alloc] init] autorelease];
+    speedSlider = [[[UISlider alloc] init] autorelease];
+    tools = [[UIToolbar alloc] init]; //retain a reference (until dealloc) because of rotation
+    glView = [[[EAGLView alloc] initWithFrame:[self doLayout:UIInterfaceOrientationPortrait] Delegate:self] autorelease];
+    glView.animating = NO;
+    glView.multipleTouchEnabled = YES;
+    
+    textView.text=@"";
+    textView.editable = NO;
+    textView.delegate = self;
+    selectedText.location = selectedText.length = 0;
+    textView.selectedRange=selectedText;
+    NSInteger sz = [[NSUserDefaults standardUserDefaults] integerForKey:EDIT_FONT_SIZE];
+    if (!sz)
+        [[NSUserDefaults standardUserDefaults] setInteger:sz=12 forKey:EDIT_FONT_SIZE];
+    
+    textView.font = [UIFont systemFontOfSize:sz];
+    
+    webView.dataDetectorTypes = UIDataDetectorTypeNone;
+    webView.delegate = self;
+    
+    messageLabel.editable = NO;
+    messageLabel.backgroundColor = [UIColor grayColor];
+    messageLabel.textColor = [UIColor whiteColor];
+    messageLabel.contentInset = UIEdgeInsetsZero;
+    messageLabel.hidden = YES;
+    
+    speedSlider.minimumValue=0.1; speedSlider.maximumValue=12.0;
+    speedSlider.hidden = YES;
+    
+    [speedSlider addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
+    [speedSlider addTarget:self action:@selector(speedSlid:) forControlEvents:UIControlEventValueChanged];
+    //...and lay them out
+    speedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [speedBtn setImageEdgeInsets:UIEdgeInsetsMake(0.0, 2.0, 0.0, 2.0)];
+    [speedBtn addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
+    
+    [self refreshToolbar];
+    
+    [self.view addSubview:glView];
+    [self.view addSubview:textView];
+    [self.view addSubview:webView];
+    //relying here on things added later being on top of those added earlier.
+    //Seems to work ok but not sure whether this is guaranteed?!
+    [self.view addSubview:speedSlider];
+    [self.view addSubview:messageLabel];
+    [self.view addSubview:tools];
+    
+    
+    //start Realization i.e. training in a separate thread. (Has to be after first
+    // call to doLayout, or get a black band across top of screen)
+    [self doAsyncLocked:@"Initializing..." target:self selector:@selector(initDasherInterface) param:nil];
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if(doneSetup) {
+        glView.animating = YES;
+    }
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    glView.animating = NO;
+}
 -(void)refreshToolbar {
   UIBarButtonSystemItem icon = _dasherInterface->GetGameModule() ? UIBarButtonSystemItemStop : UIBarButtonSystemItemPlay;
   UIBarButtonItem *game = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:icon target:self action:@selector(toggleGameMode)] autorelease];
@@ -409,17 +433,11 @@ static DasherAppDelegate *s_appDelegate;
 						    misc,
                 [[[ActionConfigurator alloc] init] autorelease],
 						    nil];
-  [self presentModalViewController:settings animated:YES];
-}
-
--(void)presentModalViewController:(UIViewController *)modalViewController animated:(BOOL)animated {
-  glView.animating=NO;
-  [[[UIApplication sharedApplication] keyWindow] setRootViewController:modalViewController];
-  [super presentModalViewController:modalViewController animated:animated];
+    [self presentViewController:settings animated:YES completion:nil];
 }
 
 - (void)settingsDone {
-	[self dismissModalViewControllerAnimated:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
 	glView.animating=YES;
 }
 
@@ -651,13 +669,39 @@ static DasherAppDelegate *s_appDelegate;
 
 @implementation UIViewController (lockable)
 
+#define kASYNC_LOCK_VIEW_TAG -99901
+
+- (void)doAsyncUnlock {
+    NSMutableArray *rmvcs = [NSMutableArray new];
+    for(UIViewController *viewController in self.childViewControllers) {
+        if(viewController.view.tag == kASYNC_LOCK_VIEW_TAG) {
+            [rmvcs addObject:viewController];
+        }
+    }
+    
+    [UIView animateWithDuration:0.5 animations:^{
+        for(UIViewController *viewController in rmvcs) {
+            viewController.view.alpha = 0;
+        }
+    } completion:^(BOOL finished) {
+        for(UIViewController *viewController in rmvcs) {
+            [viewController.view removeFromSuperview];
+            [viewController removeFromParentViewController];
+        }
+    }];    
+}
+
 - (void)doAsyncLocked:(NSString *)msg target:(id)obj selector:(SEL)sel param:(id)param,... {
-  CGSize mainSize = [UIScreen mainScreen].applicationFrame.size;
+  CGSize mainSize = [UIScreen mainScreen].bounds.size;
   UIViewController *lockCon = [[[UIViewController alloc] init] autorelease];
+    lockCon.view = [[[UIView alloc] initWithFrame:CGRectMake(0, 0, mainSize.width, mainSize.height)] autorelease];
+    lockCon.view.userInteractionEnabled = YES;
+/*
   UIImageView *imgView = [[[UIImageView alloc] initWithFrame:CGRectMake(0.0, 0.0, mainSize.width, mainSize.height)] autorelease];
   imgView.image = [UIImage imageNamed:@"Default"];
   imgView.contentMode = UIViewContentModeBottomRight;
-  lockCon.view = imgView;
+  [lockCon.view addSubview:imgView];
+ */
   CGRect mainLabelRect = CGRectMake(40.0, (mainSize.height*5)/12, mainSize.width-80.0, mainSize.height/6);
   UILabel *lbl1 = [[[UILabel alloc] initWithFrame:mainLabelRect] autorelease];
   lbl1.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.8];
@@ -665,18 +709,21 @@ static DasherAppDelegate *s_appDelegate;
   lbl1.textAlignment = UITextAlignmentCenter;
   lbl1.text = msg;
   lbl1.adjustsFontSizeToFitWidth = YES;
-  [imgView addSubview:lbl1];
+  [lockCon.view addSubview:lbl1]; // WAS IMGVIEW
   UILabel *lbl2 = [[[UILabel alloc] initWithFrame:CGRectMake(mainLabelRect.origin.x+20.0,(mainSize.height*15)/24,mainLabelRect.size.width-40, mainSize.height/12)] autorelease];
   lbl2.backgroundColor = lbl1.backgroundColor;
   lbl2.textColor = lbl1.textColor;
   lbl2.textAlignment = UITextAlignmentCenter;
   lbl2.adjustsFontSizeToFitWidth = YES;
   lbl2.hidden = YES;
-  [imgView addSubview:lbl2];
+  [lockCon.view addSubview:lbl2]; // WAS IMGVIEW
   //think we just hope old value of screenLockLabel was null
   // (i.e. no nested calls to doAsyncLocked...)
   [DasherAppDelegate theApp].screenLockLabel = lbl2;
-  [self presentModalViewController:lockCon animated:NO];
+    // [self presentViewController:lockCon animated:NO completion:nil];
+    [self addChildViewController:lockCon];
+    lockCon.view.tag = kASYNC_LOCK_VIEW_TAG;
+    [self.view addSubview:lockCon.view];
   NSMethodSignature *sig = [obj methodSignatureForSelector:sel];
   NSInvocation *action = [NSInvocation invocationWithMethodSignature:sig];
   int numArgs = [sig numberOfArguments];
@@ -708,7 +755,10 @@ static DasherAppDelegate *s_appDelegate;
   //passing 'nil' here, where a BOOL is expected, is a horrendous trick - nil = 0x0 is effectively reinterpret_casted... 
   // however, the 'correct' method of passing [NSNumber numberWithBool:] is erratic, resulting in either inversion, 
   // always true, or always false, on different versions of the iPhone OS/SDK...
-  [self performSelectorOnMainThread:@selector(dismissModalViewControllerAnimated:) withObject:nil waitUntilDone:NO];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    // [self dismissViewControllerAnimated:YES completion:nil];
+    [self doAsyncUnlock];
+  });
   [pool release];
 }
 

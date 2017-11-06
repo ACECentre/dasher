@@ -1778,9 +1778,9 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = K45HHA96ND;
+				DEVELOPMENT_TEAM = "";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1808,8 +1808,8 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Alan Lawrence (YB2RM5STT4)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				DEVELOPMENT_TEAM = K45HHA96ND;
 				GCC_ENABLE_CPP_EXCEPTIONS = YES;
@@ -1823,8 +1823,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.uk.acecentre.dasher;
 				PRODUCT_NAME = Dasher;
-				PROVISIONING_PROFILE = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE = "ff8b4df8-6a9a-44fc-b876-16bead9f9001";
+				PROVISIONING_PROFILE_SPECIFIER = "Dasher-Dist";
 			};
 			name = Release;
 		};
@@ -1861,8 +1861,8 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
 				DEVELOPMENT_TEAM = K45HHA96ND;
 				GCC_ENABLE_CPP_EXCEPTIONS = YES;
@@ -1876,9 +1876,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.uk.acecentre.dasher;
 				PRODUCT_NAME = Dasher;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "ff8b4df8-6a9a-44fc-b876-16bead9f9001";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "Dasher-Dist";
 			};
 			name = Distribution;
 		};
