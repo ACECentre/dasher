@@ -7,8 +7,18 @@
 #include "../DasherCore/DasherInterfaceBase.h"
 #include "FileUtils.h"
 
+#include <sys/syslimits.h>
+#include "Globber.h"
+#include <glob.h>
+#include <string.h>
+
+static int glob_onerror(const char *s, int c) {
+    NSLog(@"glob error: (%d) %s", c, s);
+    return 0;
+}
+
 int FileUtils::GetFileSize(const std::string &strFileName) {
-  NSError *err;
+  NSError *err = nil;
   NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:[NSString stringWithUTF8String:strFileName.c_str()] error:&err];
   if(err != nil) {
     NSLog(@"Warning request for file size failed: %s, error: %@", strFileName.c_str(), [err localizedDescription]);
@@ -19,16 +29,21 @@ int FileUtils::GetFileSize(const std::string &strFileName) {
 }
 
 void FileUtils::ScanFiles(AbstractParser *parser, const std::string &strPattern) {
-  const char *user[2], *sys[1];
-  user[0] = user[1] = sys[0] = nullptr; //terminators
-  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+  const char *user[2], *sys[2];
+  user[1] = sys[1] = nullptr; //terminators
   NSString *path;
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
   if([paths count] > 0) {
-    const char *cstrPattern = strPattern.c_str();
-    path = [NSString stringWithFormat:@"%@/%@", [paths objectAtIndex:0], [NSString stringWithUTF8String:cstrPattern]];
-    user[0] = [path cStringUsingEncoding:NSUTF8StringEncoding];
+      const char *cstrPattern = strPattern.c_str();
+      path = [NSString stringWithFormat:@"%@/%@", [paths objectAtIndex:0], [NSString stringWithUTF8String:cstrPattern]];
+      user[0] = [path cStringUsingEncoding:NSUTF8StringEncoding];
+  } else {
+      user[0] = nullptr;
   }
-  globScan(parser, user, sys);
+  const char *cstrPattern = strPattern.c_str();
+  path = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], [NSString stringWithUTF8String:cstrPattern]];
+  sys[0] = [path cStringUsingEncoding:NSUTF8StringEncoding];
+  globScan(parser, user, sys, glob_onerror);
 }
 
 bool FileUtils::WriteUserDataFile(const std::string &filename, const std::string &strNewText, bool append) {
@@ -43,7 +58,7 @@ bool FileUtils::WriteUserDataFile(const std::string &filename, const std::string
   FILE* f = fopen([path fileSystemRepresentation], append ? "a+" : "w+");
   if (f == nullptr)
     return false;
-  int written = fwrite(strNewText.c_str(), 1, strNewText.length(), f);
+  size_t written = fwrite(strNewText.c_str(), 1, strNewText.length(), f);
   fclose(f);
   return written == strNewText.length();
 }

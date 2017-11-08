@@ -212,6 +212,7 @@ void CDasherInterfaceBridge::editProtect(CDasherNode *pSource) {
 }
 
 void CDasherInterfaceBridge::Message(const string &strMessage, bool bInterrupt) {
+  NSLog(@"Message: %s", strMessage.c_str());
   if (bInterrupt)
     CDashIntfScreenMsgs::Message(strMessage,true);
   else

@@ -53,7 +53,6 @@
 - (void)settings;
 - (void)initDasherInterface;
 - (void)finishStartup;
-- (void)doSpeedBtnImage:(NSString *)msg;
 - (void)speedSlid:(id)slider;
 - (CGRect)doLayout:(UIInterfaceOrientation)orient;
 //calls through to [EAGLView makeContextCurrent]
@@ -230,9 +229,9 @@ static DasherAppDelegate *s_appDelegate;
     
     // iOS specific default settings
     std::string geometryStr("Geometry");
-    if(!_dasherInterface->IsParameterSaved(geometryStr) || YES) {
-       // fill screen
-       // _dasherInterface->SetLongParameter(LP_GEOMETRY, 0);
+    if(!_dasherInterface->IsParameterSaved(geometryStr)) {
+        // maybe new value needed
+        // _dasherInterface->SetLongParameter(LP_GEOMETRY, 0);
     }
     // initiate window, the rest at viewDidLoad
     //sizes set in doLayout, below...
@@ -278,16 +277,21 @@ static DasherAppDelegate *s_appDelegate;
     messageLabel.contentInset = UIEdgeInsetsZero;
     messageLabel.hidden = YES;
     
-    speedSlider.minimumValue=0.1; speedSlider.maximumValue=12.0;
+    CGFloat maxSpeed = _dasherInterface->GetLongParameter(LP_X_LIMIT_SPEED) / 100.0;
+    self.speedChangeStep = (CGFloat)maxSpeed / 15;
+    speedSlider.minimumValue = 0.1;
+    speedSlider.maximumValue = maxSpeed;
     speedSlider.hidden = YES;
     
     [speedSlider addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
     [speedSlider addTarget:self action:@selector(speedSlid:) forControlEvents:UIControlEventValueChanged];
-    //...and lay them out
-    speedBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [speedBtn setImageEdgeInsets:UIEdgeInsetsMake(0.0, 2.0, 0.0, 2.0)];
-    [speedBtn addTarget:self action:@selector(fadeSlider) forControlEvents:UIControlEventAllTouchEvents];
     
+    // init speed label, it will be added to view in refreshToolbar call
+    self.speedLabel = [[[UILabel alloc] initWithFrame:CGRectZero] autorelease];
+    self.speedLabel.userInteractionEnabled = YES;
+    [self.speedLabel addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(fadeSlider)]];
+    
+    [self notifySpeedChange];
     [self refreshToolbar];
     
     [self.view addSubview:glView];
@@ -322,21 +326,40 @@ static DasherAppDelegate *s_appDelegate;
   UIBarButtonItem *game = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:icon target:self action:@selector(toggleGameMode)] autorelease];
   UIBarButtonItem *action = [ActionButton buttonForToolbar:tools];
   if (!toolbarItems) {
-    toolbarItems = [[NSMutableArray arrayWithObjects:
+      UIBarButtonItem *flexSpaceLeft = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil] autorelease];
+      flexSpaceLeft.width = 40.0;
+      toolbarItems = [[NSMutableArray arrayWithObjects:
                    [[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"cog.png"] style:UIBarButtonItemStylePlain target:self action:@selector(settings)] autorelease],
-                   [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease],
-                   [[[UIBarButtonItem alloc] initWithCustomView:speedBtn] autorelease],
+                       flexSpaceLeft,
+                   // rewind icon for slowing down
+                     [[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"rewind"] style:UIBarButtonItemStylePlain target:self action:@selector(didTapSlowDown:)] autorelease],
+                   // speed label
+                   [[[UIBarButtonItem alloc] initWithCustomView:self.speedLabel] autorelease],
+                   // fast-forward icon for speeding up
+                     [[[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"fast-forward"] style:UIBarButtonItemStylePlain target:self action:@selector(didTapSpeedUp:)] autorelease],
                    [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease],
                    game,
-                   [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease],
+                   //[[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease],
                    action,
                    nil] retain];
   } else {
-    [toolbarItems replaceObjectAtIndex:4 withObject:game];
-    [toolbarItems replaceObjectAtIndex:6 withObject:action];
+    [toolbarItems replaceObjectAtIndex:6 withObject:game];
+    [toolbarItems replaceObjectAtIndex:7 withObject:action];
   }
   webView.hidden = !(textView.hidden = _dasherInterface->GetGameModule() ? YES : NO);
   [tools setItems:toolbarItems];
+}
+
+- (IBAction)didTapSlowDown:(id)sender {
+    speedSlider.value = MAX(speedSlider.value - self.speedChangeStep, speedSlider.minimumValue);
+    [self speedSlid:speedSlider];
+    [self fadeSlider];
+}
+
+- (IBAction)didTapSpeedUp:(id)sender {
+    speedSlider.value = MIN(speedSlider.value + self.speedChangeStep, speedSlider.maximumValue);
+    [self speedSlid:speedSlider];
+    [self fadeSlider];
 }
 
 -(void)webViewDidFinishLoad:(UIWebView *)sender {
@@ -384,8 +407,8 @@ static DasherAppDelegate *s_appDelegate;
 }
 
 - (void)speedSlid:(id)sender {
-	float v = ((UISlider *)sender).value;
-	_dasherInterface->SetLongParameter(LP_MAX_BITRATE, 100*v);
+	CGFloat v = ((UISlider *)sender).value;
+    _dasherInterface->SetLongParameter(LP_MAX_BITRATE, (long)(v * 100.0));
 	//[self notifySpeedChange];//no need, CDasherInterfaceBridge calls if SetLongParameter did anything
 }
 
@@ -507,46 +530,11 @@ static DasherAppDelegate *s_appDelegate;
 }
 
 - (void)notifySpeedChange {
-  double speed = self.dasherInterface->GetLongParameter(LP_MAX_BITRATE) / 100.0;
+  CGFloat speed = (CGFloat)self.dasherInterface->GetLongParameter(LP_MAX_BITRATE) / 100.0;
   speedSlider.value = speed; 
 	NSString *caption = [NSString stringWithFormat:@"%.2f", speed];
-	[self doSpeedBtnImage:caption];
-}
-
-- (void)doSpeedBtnImage:(NSString *)msg {
-	CGSize size = [msg sizeWithFont:[UIFont boldSystemFontOfSize:12.0]];
-	int h = size.height, w = size.width + h + 4.0;
-	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-	CGContextRef context = CGBitmapContextCreate(nil, w, h, 8, w*4, colorSpace, kCGImageAlphaPremultipliedLast);
-	UIGraphicsPushContext(context);
-	CGContextClearRect(context, CGRectMake(0.0, 0.0, w, h));
-	const CGFloat whiteComps[] = {1.0, 1.0, 1.0, 1.0};
-	CGColorRef white = CGColorCreate(colorSpace, whiteComps);
-	CGContextSetFillColorWithColor(context, white);
-	CGContextSetStrokeColorWithColor(context, white);
-	CGContextTranslateCTM(context, 0.0, h);
-	CGContextScaleCTM(context, 1.0, -1.0);
-	[msg drawAtPoint:CGPointMake(h/2.0 + 2.0, 0.0) withFont:[UIFont boldSystemFontOfSize:12.0]];
-	CGContextBeginPath(context);
-	CGContextMoveToPoint(context, 0.0, h/2.0);
-	CGContextAddLineToPoint(context, h/2.0, 0.0);
-	CGContextAddLineToPoint(context, h/2.0, h);
-	CGContextFillPath(context); //implicitly ClosePath's first
-
-	CGContextBeginPath(context);
-	
-	CGContextMoveToPoint(context, w - h/2.0, 0.0);
-	CGContextAddLineToPoint(context, w - h/2, h);
-	CGContextAddLineToPoint(context, w, h/2.0);
-	CGContextFillPath(context);
-	
-	CGColorRelease(white);
-	UIGraphicsPopContext();
-	CGImageRef whole = CGBitmapContextCreateImage(context);
-	CGContextRelease(context);
-	[speedBtn setImage:[UIImage imageWithCGImage:whole] forState:UIControlStateNormal];
-	[speedBtn sizeToFit];
-	CGImageRelease(whole);
+    self.speedLabel.text = caption;
+    [self.speedLabel sizeToFit];
 }
 
 - (void)dealloc {
@@ -578,8 +566,8 @@ static DasherAppDelegate *s_appDelegate;
 }
 
 - (int)find:(CControlManager::EditDistance)amt forwards:(BOOL)bForwards {
-  if (amt==CControlManager::EDIT_FILE) return bForwards ? [textView.text length] : 0;
-  int pos = selectedText.location;
+  if (amt==CControlManager::EDIT_FILE) return bForwards ? (int)[textView.text length] : 0;
+  int pos = (int)selectedText.location;
   for(;;) {
     if (bForwards) {
       if (++pos > [textView.text length]) return pos-1;
