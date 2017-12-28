@@ -2331,6 +2331,7 @@
 					"${SRCROOT}/lib",
 					"${SRCROOT}",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";

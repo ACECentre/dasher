@@ -550,8 +550,8 @@ static DasherAppDelegate *s_appDelegate;
   // the editing functions in control mode are too broken to fix right now! Hence,
   // copying the Gtk2 behaviour...)
   unsigned int tmp1 = (unsigned int)[textView.text length];
-  unsigned int tmp2 = (unsigned int)([textView.text length] - range.location);
-  range.location = max(0u,min(offset,tmp1));
+  unsigned int tmp2 = (unsigned int)max(0, (int)([textView.text length] - (int)offset));
+  range.location = min(offset,tmp1);
   range.length = min(length,tmp2);
   return [textView.text substringWithRange:range];
 }
